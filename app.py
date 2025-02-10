@@ -36,23 +36,18 @@ def main():
         """
     )
 
-    # Sidebar: model selection.
     model_choice = st.sidebar.selectbox("Select ASR Model", list(MODEL_MAP.keys()))
 
-    # Load the selected model only if it's not already loaded.
     if "current_model" not in st.session_state or st.session_state.current_model != model_choice:
         st.session_state.model_pipeline = load_model(model_choice)
         st.session_state.current_model = model_choice
 
-    # Audio file uploader.
     audio_file = st.file_uploader("Upload Audio File", type=["wav", "mp3", "m4a"])
 
     if st.button("Transcribe"):
         if audio_file is None:
             st.error("Please upload an audio file.")
             return
-
-        # Save the uploaded audio file to a temporary file.
         with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as tmp:
             tmp.write(audio_file.read())
             tmp_path = tmp.name
@@ -60,7 +55,6 @@ def main():
         model_pipeline = st.session_state.model_pipeline
 
         try:
-            # For Whisper models, you can optionally request word-level timestamps.
             if model_choice in ["Whisper Large", "Whisper Base"]:
                 result = model_pipeline(tmp_path, return_timestamps="word")
             else:
@@ -69,7 +63,6 @@ def main():
             st.error(f"Error during transcription: {e}")
             result = None
 
-        # Remove the temporary file.
         os.remove(tmp_path)
 
         if result is not None:
